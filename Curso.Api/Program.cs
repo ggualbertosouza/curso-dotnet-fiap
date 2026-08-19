@@ -1,9 +1,16 @@
+using Curso.Api.Data;
+using Microsoft.EntityFrameworkCore;
+
 // Cria o builder da nossa aplicação
 // responsável por preparar nossa aplicação, vamos encadear configurações aqui como:
 // 1.Serviços 2.Ambiente 3.Logging 4.Servidores
 var builder = WebApplication.CreateBuilder(args);
 
 // builder.Services é o conjunto de serviçps registrados na aplicação.
+
+// Registra o DbContext com escopo por requisição, usando a connection string "Default"
+builder.Services.AddDbContext<AppDbContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("Default")));
 
 // Adiciona as controllers a aplicação
 builder.Services.AddControllers();

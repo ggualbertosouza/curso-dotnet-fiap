@@ -1,5 +1,5 @@
 using System.ComponentModel.DataAnnotations;
-using Curso.Api.Controllers;
+using Curso.Api.Models;
 
 namespace Curso.Api.Dto;
 

@@ -1,28 +1,31 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using Curso.Api.Data;
 using Curso.Api.Dto;
+using Curso.Api.Models;
 
 namespace Curso.Api.Controllers;
-
-public record Student(int Id, string Name, string Email);
 
 [ApiController]
 [Route("[controller]")]
 public class StudentController : ControllerBase
 {
-    private static readonly List<Student> _students = new();
-    private static int _nextId = 1;
+    private readonly AppDbContext _context;
+
+    public StudentController(AppDbContext context) => _context = context;
 
     [HttpGet]
-    public ActionResult<IEnumerable<StudentResponse>> Get()
+    public async Task<ActionResult<IEnumerable<StudentResponse>>> Get()
     {
-        var response = _students.Select(StudentResponse.FromStudent);
+        var students = await _context.Students.ToListAsync();
+        var response = students.Select(StudentResponse.FromStudent);
         return Ok(response);
     }
 
     [HttpGet("{id}")]
-    public ActionResult<StudentResponse> GetById(int id)
+    public async Task<ActionResult<StudentResponse>> GetById(int id)
     {
-        var student = _students.FirstOrDefault(s => s.Id == id);
+        var student = await _context.Students.FindAsync(id);
 
         if (student is null)
             return NotFound();
@@ -31,10 +34,12 @@ public class StudentController : ControllerBase
     }
 
     [HttpPost]
-    public ActionResult<StudentResponse> Post([FromBody] CreateStudentRequest request)
+    public async Task<ActionResult<StudentResponse>> Post([FromBody] CreateStudentRequest request)
     {
-        var student = new Student(_nextId++, request.Name, request.Email);
-        _students.Add(student);
+        var student = new Student { Name = request.Name, Email = request.Email };
+
+        _context.Students.Add(student);
+        await _context.SaveChangesAsync();
 
         var response = StudentResponse.FromStudent(student);
 
@@ -42,27 +47,31 @@ public class StudentController : ControllerBase
     }
 
     [HttpPut("{id}")]
-    public IActionResult Put(int id, [FromBody] UpdateStudentRequest request)
+    public async Task<IActionResult> Put(int id, [FromBody] UpdateStudentRequest request)
     {
-        var index = _students.FindIndex(s => s.Id == id);
+        var student = await _context.Students.FindAsync(id);
 
-        if (index == -1)
+        if (student is null)
             return NotFound();
 
-        _students[index] = new Student(id, request.Name, request.Email);
+        student.Name = request.Name;
+        student.Email = request.Email;
+
+        await _context.SaveChangesAsync();
 
         return NoContent();
     }
 
     [HttpDelete("{id}")]
-    public IActionResult Delete(int id)
+    public async Task<IActionResult> Delete(int id)
     {
-        var student = _students.FirstOrDefault(s => s.Id == id);
+        var student = await _context.Students.FindAsync(id);
 
         if (student is null)
             return NotFound();
 
-        _students.Remove(student);
+        _context.Students.Remove(student);
+        await _context.SaveChangesAsync();
 
         return NoContent();
     }
