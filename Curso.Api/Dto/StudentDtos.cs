@@ -3,25 +3,27 @@ using Curso.Api.Models;
 
 namespace Curso.Api.Dto;
 
-public record CreateStudentRequest(
-    [property: Required]
-    [property: StringLength(100, MinimumLength = 2)]
-    string Name,
+public class CreateStudentRequest
+{
+    [Required]
+    [StringLength(100, MinimumLength = 2)]
+    public string Name { get; set; } = string.Empty;
 
-    [property: Required]
-    [property: EmailAddress]
-    string Email
-);
+    [Required]
+    [EmailAddress]
+    public string Email { get; set; } = string.Empty;
+}
 
-public record UpdateStudentRequest(
-    [property: Required]
-    [property: StringLength(100, MinimumLength = 2)]
-    string Name,
+public class UpdateStudentRequest
+{
+    [Required]
+    [StringLength(100, MinimumLength = 2)]
+    public string Name { get; set; } = string.Empty;
 
-    [property: Required]
-    [property: EmailAddress]
-    string Email
-);
+    [Required]
+    [EmailAddress]
+    public string Email { get; set; } = string.Empty;
+}
 
 public record StudentResponse(int Id, string Name, string Email)
 {
