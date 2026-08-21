@@ -1,5 +1,8 @@
+using System.Text;
 using Curso.Api.Data;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 
 // Cria o builder da nossa aplicação
 // responsável por preparar nossa aplicação, vamos encadear configurações aqui como:
@@ -32,6 +35,29 @@ builder.Services.AddCors(options =>
     });
 });
 
+// Configura autenticação via JWT Bearer.
+// A mesma chave secreta usada aqui pra validar precisa ser a usada no AuthController pra assinar.
+var jwtSettings = builder.Configuration.GetSection("Jwt");
+var jwtSecret = jwtSettings["Secret"]!;
+
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            ValidIssuer = jwtSettings["Issuer"],
+            ValidAudience = jwtSettings["Audience"],
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSecret))
+        };
+    });
+
+// Habilita o uso de [Authorize] (e [Authorize(Roles = "...")]) nos controllers
+builder.Services.AddAuthorization();
+
 // Adiciona as controllers a aplicação
 builder.Services.AddControllers();
 
@@ -59,7 +85,9 @@ app.UseHttpsRedirection();
 // pra que o navegador já receba os headers de CORS antes de qualquer checagem de autorização.
 app.UseCors(LocalhostCorsPolicy);
 
-// Trata a autenticação - Vamos específicar mais depois
+// Lê e valida o JWT enviado no header Authorization (Bearer), preenchendo o usuário da requisição.
+// Precisa vir antes do UseAuthorization, que é quem decide se o usuário autenticado pode acessar o recurso.
+app.UseAuthentication();
 app.UseAuthorization();
 
 // Reconhece os endpoints da aplicação

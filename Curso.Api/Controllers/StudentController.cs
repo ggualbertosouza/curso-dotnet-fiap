@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Curso.Api.Data;
@@ -8,6 +9,9 @@ namespace Curso.Api.Controllers;
 
 [ApiController]
 [Route("[controller]")]
+// Exige token válido com a claim de role "Admin" em todo o controller.
+// A criação (Post) é liberada individualmente com [AllowAnonymous] logo abaixo.
+[Authorize(Roles = "Admin")]
 public class StudentController : ControllerBase
 {
     private readonly AppDbContext _context;
@@ -33,6 +37,8 @@ public class StudentController : ControllerBase
         return Ok(StudentResponse.FromStudent(student));
     }
 
+    // Única rota do controller que não exige token, mesmo com [Authorize] na classe.
+    [AllowAnonymous]
     [HttpPost]
     public async Task<ActionResult<StudentResponse>> Post([FromBody] CreateStudentRequest request)
     {
