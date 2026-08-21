@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8" />
+  <title>Demo de CORS</title>
+  <style>
+    body { font-family: sans-serif; max-width: 640px; margin: 40px auto; }
+    pre { background: #f2f2f2; padding: 12px; white-space: pre-wrap; word-break: break-word; }
+    button { padding: 8px 16px; font-size: 16px; cursor: pointer; }
+  </style>
+</head>
+<body>
+  <h1>Teste de CORS</h1>
+
+  <!-- Mostra de qual origem essa página está sendo servida agora -->
+  <p>Origin desta página: <code id="origin"></code></p>
+
+  <!-- Ajuste a porta/protocolo conforme o launchSettings.json (perfil "http" = 5291) -->
+  <p>API alvo: <code>http://localhost:5291/Student</code></p>
+
+  <button id="btn">Chamar API (GET /Student)</button>
+  <pre id="resultado">Aguardando clique...</pre>
+
+  <script>
+    const API_URL = 'http://localhost:5291/Student';
+
+    document.getElementById('origin').textContent = window.location.origin;
+
+    document.getElementById('btn').addEventListener('click', async () => {
+      const resultado = document.getElementById('resultado');
+      resultado.textContent = 'Chamando...';
+
+      try {
+        const resp = await fetch(API_URL);
+        const data = await resp.json();
+        resultado.textContent = 'Sucesso! Status ' + resp.status + '\n\n' + JSON.stringify(data, null, 2);
+      } catch (err) {
+        // Erros de CORS caem aqui como "Failed to fetch" -- o detalhe real
+        // (Access-Control-Allow-Origin ausente) só aparece no Console (F12).
+        resultado.textContent = 'Erro na chamada (abra o Console com F12 pra ver o motivo real).\n\n' + err;
+      }
+    });
+  </script>
+</body>
+</html>
